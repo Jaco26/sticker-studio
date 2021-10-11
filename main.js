@@ -1,126 +1,212 @@
 import { setupDOMRefs } from './lib/dom-refs.js'
 import { setupCanvas } from './lib/canvas.js'
-import { createRect } from './lib/drawing.js'
+// import { createRect } from './lib/drawing.js'
 import { setupElements } from './lib/elements.js'
 import { setupEvents } from './lib/events.js'
 
+import { rectHandles, createRect } from './lib/shapes/rect.js'
+
 const canvas = setupCanvas({ containerID: 'canvas' })
 
-const backgroundState = {
-    mode: 'BLUE',
-    options: {
-        BLUE: {
-            update(main, overlay) {
-                main.clearRect(0, 0, canvas.width(), canvas.height())
-                main.beginPath()
-                main.fillStyle = 'blue'
-                main.fillRect(0, 0, canvas.width(), canvas.height())
-                main.closePath()
-                this.mode = 'ORANGE'
-            },
-        },
-        ORANGE: {
-            update(main, overlay) {
-                main.clearRect(0, 0, canvas.width(), canvas.height())
-                main.beginPath()
-                main.fillStyle = 'orange'
-                main.fillRect(0, 0, canvas.width(), canvas.height())
-                main.closePath()
-                this.mode = 'BLUE'
-            }
-        }
-    }
-}
+const rect = createRect(150, 100, 100, 400)
 
+const handles = rectHandles(rect.dimensions())
 
-const lineState = {
-    mode: 'START',
-    x: null,
-    y: null,
-    options: {
-        START: {
-            handleInput(x, y) {
-                this.x = x
-                this.y = y
-            },
-            update(main, overlay) {
-                overlay.beginPath()
-                overlay.strokeStyle = 'white'
-                overlay.moveTo(this.x, this.y)
-                this.mode = 'DRAWING'
-            }
-        },
-        DRAWING: {
-            handleInput(x, y) {
-                this.x = x
-                this.y = y
-            },
-            update(main, overlay) {
-                overlay.lineTo(this.x, this.y)
-                overlay.stroke()
-            }
-        },
-        FINISH: {
-            handleInput(x, y) {
-                this.x = x
-                this.y = y
-            },
-            update(main, overlay) {
-                overlay.lineTo(this.x, this.y)
-                overlay.closePath()
-                this.mode = 'START'
-                this.x = null
-                this.y = null
-            }
-        },
-    }
-}
+canvas.draw((main, overlay) => {
+    rect.fillStyle('#88c')
+    rect.strokeStyle('#88c')
+    rect.draw(main)
+    handles.draw(overlay)
+})
 
+canvas.on('mousedown', mdEvt => {
 
-canvas.on('mousedown', (e) => {
-    
-    canvas.draw((main, overlay) => {
+    const { offsetX, offsetY } = mdEvt
 
-        backgroundState.options[backgroundState.mode].update.call(backgroundState, main, overlay)
+    const resizeRect = handles.isHit(offsetX, offsetY)
 
-        lineState.options[lineState.mode].handleInput.call(lineState, e.offsetX, e.offsetY)
+    if (resizeRect) {
 
-        lineState.options[lineState.mode].update.call(lineState, main, overlay)
+        canvas.on('mousemove', mmEvt => {
 
-    })
+            const { offsetX, offsetY } = mmEvt
 
-    canvas.on('mousemove', e => {
+            resizeRect(rect, offsetX, offsetY)
 
-        canvas.draw((main, overlay) => {
+            handles.update(rect.dimensions())
 
-            lineState.options[lineState.mode].handleInput.call(lineState, e.offsetX, e.offsetY)
+            canvas.clear()
 
-            lineState.options[lineState.mode].update.call(lineState, main, overlay)
+            canvas.draw((main, overlay) => {
+
+                rect.draw(main)
+            
+                handles.draw(overlay)
+
+            })
 
         })
 
-    })
+    } else if (rect.isHit(offsetX, offsetY)) {
+
+        // TODO: commented code below is buggy
+        
+        // canvas.on('mousemove', mmEvt => {
+
+        //     const { x, y } = rect.dimensions()
+
+        //     rect.setDimensions({
+        //         x: mmEvt.offsetX - x,
+        //         y: mmEvt.offsetY - y
+        //     })
+
+        //     handles.update(rect.dimensions())
+
+        //     canvas.clear()
+
+        //     canvas.draw((main, overlay) => {
+
+        //         rect.draw(main)
+
+        //         handles.draw(overlay)
+
+        //     })
+
+        // })
+
+    }
+
+
 })
 
-canvas.on('mouseup', e => {
+canvas.on('mouseup', mouseupEvt => {
 
     canvas.off('mousemove')
 
-    canvas.draw((main, overlay) => {
-
-        overlay.closePath()
-
-        backgroundState.options[backgroundState.mode].update.call(backgroundState, main, overlay)
-
-        lineState.mode = 'FINISH'
-
-        lineState.options[lineState.mode].handleInput.call(lineState, e.offsetX, e.offsetY)
-
-        lineState.options[lineState.mode].update.call(lineState, main, overlay)
-
-    })
 })
 
+
+// // / / // // /  / / // /// / / // /
+
+// const backgroundState = {
+//     mode: 'BLUE',
+//     options: {
+//         BLUE: {
+//             update(main, overlay) {
+//                 main.clearRect(0, 0, canvas.width(), canvas.height())
+//                 main.beginPath()
+//                 main.fillStyle = 'blue'
+//                 main.fillRect(0, 0, canvas.width(), canvas.height())
+//                 main.closePath()
+//                 this.mode = 'ORANGE'
+//             },
+//         },
+//         ORANGE: {
+//             update(main, overlay) {
+//                 main.clearRect(0, 0, canvas.width(), canvas.height())
+//                 main.beginPath()
+//                 main.fillStyle = 'orange'
+//                 main.fillRect(0, 0, canvas.width(), canvas.height())
+//                 main.closePath()
+//                 this.mode = 'BLUE'
+//             }
+//         }
+//     }
+// }
+
+
+// const lineState = {
+//     mode: 'START',
+//     x: null,
+//     y: null,
+//     options: {
+//         START: {
+//             handleInput(x, y) {
+//                 this.x = x
+//                 this.y = y
+//             },
+//             update(main, overlay) {
+//                 overlay.beginPath()
+//                 overlay.strokeStyle = 'white'
+//                 overlay.moveTo(this.x, this.y)
+//                 this.mode = 'DRAWING'
+//             }
+//         },
+//         DRAWING: {
+//             handleInput(x, y) {
+//                 this.x = x
+//                 this.y = y
+//             },
+//             update(main, overlay) {
+//                 overlay.lineTo(this.x, this.y)
+//                 overlay.stroke()
+//             }
+//         },
+//         FINISH: {
+//             handleInput(x, y) {
+//                 this.x = x
+//                 this.y = y
+//             },
+//             update(main, overlay) {
+//                 overlay.lineTo(this.x, this.y)
+//                 overlay.closePath()
+//                 this.mode = 'START'
+//                 this.x = null
+//                 this.y = null
+//             }
+//         },
+//     }
+// }
+
+
+// canvas.on('mousedown', (e) => {
+    
+//     canvas.draw((main, overlay) => {
+
+//         backgroundState.options[backgroundState.mode].update.call(backgroundState, main, overlay)
+
+//         lineState.options[lineState.mode].handleInput.call(lineState, e.offsetX, e.offsetY)
+
+//         lineState.options[lineState.mode].update.call(lineState, main, overlay)
+
+//     })
+
+//     canvas.on('mousemove', e => {
+
+//         canvas.draw((main, overlay) => {
+
+//             lineState.options[lineState.mode].handleInput.call(lineState, e.offsetX, e.offsetY)
+
+//             lineState.options[lineState.mode].update.call(lineState, main, overlay)
+
+//         })
+
+//     })
+// })
+
+// canvas.on('mouseup', e => {
+
+//     canvas.off('mousemove')
+
+//     canvas.draw((main, overlay) => {
+
+//         overlay.closePath()
+
+//         backgroundState.options[backgroundState.mode].update.call(backgroundState, main, overlay)
+
+//         lineState.mode = 'FINISH'
+
+//         lineState.options[lineState.mode].handleInput.call(lineState, e.offsetX, e.offsetY)
+
+//         lineState.options[lineState.mode].update.call(lineState, main, overlay)
+
+//     })
+// })
+
+
+
+
+// / / // /// // / // // // /
 
 
 
