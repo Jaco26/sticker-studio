@@ -14,7 +14,7 @@ const handles = rectHandles(rect.dimensions())
 
 canvas.draw((main, overlay) => {
     rect.fillStyle('#88c')
-    rect.strokeStyle('#88c')
+    rect.strokeStyle('#2f2')
     rect.draw(main)
     handles.draw(overlay)
 })
