@@ -1,91 +1,153 @@
 import { setupDOMRefs } from './lib/dom-refs.js'
 import { setupCanvas } from './lib/canvas.js'
-// import { createRect } from './lib/drawing.js'
+
 import { setupElements } from './lib/elements.js'
-import { setupEvents } from './lib/events.js'
 
-import { rectHandles, createRect } from './lib/shapes/rect.js'
+import { createRectHandles } from './lib/rect-handles.js'
+import { createRect } from './lib/shapes/rect.js'
 
-const canvas = setupCanvas({ containerID: 'canvas' })
+const canvas = setupCanvas({ containerID: 'canvas', width: 800, height: 600 })
 
-const rect = createRect(150, 100, 100, 400)
+const elements = [
+    createRect(350, 100, 300, 100),
+    createRect(150, 100, 100, 200)
+]
 
-const handles = rectHandles(rect.dimensions())
+let selected = null
+let handles = null
 
 canvas.draw((main, overlay) => {
-    rect.fillStyle('#88c')
-    rect.strokeStyle('#2f2')
-    rect.draw(main)
-    handles.draw(overlay)
+
+    elements.forEach(elem => {
+
+        elem.fillStyle('#88c')
+
+        elem.strokeStyle('#2f2')
+
+        elem.draw(main)
+
+    })
+
 })
 
 canvas.on('mousedown', mdEvt => {
 
-    const { offsetX, offsetY } = mdEvt
+    selected = elements.reduce((acc, elem) => {
 
-    const resizeRect = handles.isHit(offsetX, offsetY)
+        elem.selected(elem.isHit(mdEvt.offsetX, mdEvt.offsetY))
 
-    if (resizeRect) {
+        acc = elem.selected() ? elem : acc
 
-        canvas.on('mousemove', mmEvt => {
+        return acc
 
-            const { offsetX, offsetY } = mmEvt
+    }, null)
 
-            resizeRect(rect, offsetX, offsetY)
+    if (selected) {
 
-            handles.update(rect.dimensions())
+        handles = createRectHandles(selected.dimensions())
 
-            canvas.clear()
+        canvas.clear()
 
-            canvas.draw((main, overlay) => {
+        canvas.draw((main, overlay) => {
 
-                rect.draw(main)
-            
-                handles.draw(overlay)
+            elements.forEach(elem => {
+
+                elem.draw(main)
 
             })
+        
+            handles.draw(overlay)
 
         })
 
-    } else if (rect.isHit(offsetX, offsetY)) {
+        const { offsetX, offsetY } = mdEvt
 
-        const { x, y } = rect.dimensions()
+        const resizeRect = handles.isHit(offsetX, offsetY)
+    
+        if (resizeRect) {
+    
+            canvas.on('mousemove', mmEvt => {
+    
+                const { offsetX, offsetY } = mmEvt
+    
+                resizeRect(selected, offsetX, offsetY)
+    
+                handles.update(selected.dimensions())
+    
+                canvas.clear()
+    
+                canvas.draw((main, overlay) => {
 
-        const initXOffset = offsetX - x 
+                    elements.forEach(elem => {
 
-        const initYOffset = offsetY - y
-        
-        canvas.on('mousemove', mmEvt => {
+                        elem.draw(main)
 
-            const { offsetX, offsetY } = mmEvt
-
-            const { x, y } = rect.dimensions()
-
-            const rectOffsetX = offsetX - x
-
-            const rectOffsetY = offsetY - y
-
-            rect.setDimensions({
-                x: x + rectOffsetX - initXOffset,
-                y: y + rectOffsetY - initYOffset
+                    })
+                
+                    handles.draw(overlay)
+    
+                })
+    
             })
+    
+        } else {
+    
+            const { x, y } = selected.dimensions()
+    
+            const initXOffset = offsetX - x 
+    
+            const initYOffset = offsetY - y
+            
+            canvas.on('mousemove', mmEvt => {
+    
+                const { offsetX, offsetY } = mmEvt
+    
+                const { x, y } = selected.dimensions()
+    
+                const rectOffsetX = offsetX - x
+    
+                const rectOffsetY = offsetY - y
+    
+                selected.setDimensions({
+                    x: x + rectOffsetX - initXOffset,
+                    y: y + rectOffsetY - initYOffset
+                })
+    
+                handles.update(selected.dimensions())
+    
+                canvas.clear()
+    
+                canvas.draw((main, overlay) => {
 
-            handles.update(rect.dimensions())
+                    elements.forEach(elem => {
 
-            canvas.clear()
+                        elem.draw(main)
 
-            canvas.draw((main, overlay) => {
-
-                rect.draw(main)
-
-                handles.draw(overlay)
-
+                    })
+    
+                    handles.draw(overlay)
+    
+                })
+    
             })
+    
+        }
 
+    } else {
+
+        canvas.clear()
+
+        canvas.draw((main, overlay) => {
+    
+            elements.forEach(elem => {
+    
+                elem.draw(main)
+    
+            })
+    
         })
 
     }
-
 
 })
 
