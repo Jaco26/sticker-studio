@@ -49,30 +49,40 @@ canvas.on('mousedown', mdEvt => {
 
     } else if (rect.isHit(offsetX, offsetY)) {
 
-        // TODO: commented code below is buggy
+        const { x, y } = rect.dimensions()
+
+        const initXOffset = offsetX - x 
+
+        const initYOffset = offsetY - y
         
-        // canvas.on('mousemove', mmEvt => {
+        canvas.on('mousemove', mmEvt => {
 
-        //     const { x, y } = rect.dimensions()
+            const { offsetX, offsetY } = mmEvt
 
-        //     rect.setDimensions({
-        //         x: mmEvt.offsetX - x,
-        //         y: mmEvt.offsetY - y
-        //     })
+            const { x, y } = rect.dimensions()
 
-        //     handles.update(rect.dimensions())
+            const rectOffsetX = offsetX - x
 
-        //     canvas.clear()
+            const rectOffsetY = offsetY - y
 
-        //     canvas.draw((main, overlay) => {
+            rect.setDimensions({
+                x: x + rectOffsetX - initXOffset,
+                y: y + rectOffsetY - initYOffset
+            })
 
-        //         rect.draw(main)
+            handles.update(rect.dimensions())
 
-        //         handles.draw(overlay)
+            canvas.clear()
 
-        //     })
+            canvas.draw((main, overlay) => {
 
-        // })
+                rect.draw(main)
+
+                handles.draw(overlay)
+
+            })
+
+        })
 
     }
 
