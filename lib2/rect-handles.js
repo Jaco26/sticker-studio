@@ -1,30 +1,30 @@
 
 
-const translateXStart = (rect, newX, preserveAspectRatio) => {
-    const { x, w } = rect.dimensions()
-    rect.setDimensions({
+const translateXStart = (dimensions, setDimensions, newX) => {
+    const { x, w } = dimensions
+    setDimensions({
         x: x + (newX - x),
         w: w - (newX - x)
     })
 }
 
-const translateXEnd = (rect, newX) => {
-    rect.setDimensions({
-        w: newX - rect.dimensions().x
+const translateXEnd = (dimensions, setDimensions, newX) => {
+    setDimensions({
+        w: newX - dimensions.x
     })
 }
 
-const translateYStart = (rect, newY) => {
-    const { y, h } = rect.dimensions()
-    rect.setDimensions({
+const translateYStart = (dimensions, setDimensions, newY) => {
+    const { y, h } = dimensions
+    setDimensions({
         y: y + (newY - y),
         h: h - (newY - y)
     })
 }
 
-const translateYEnd = (rect, newY) => {
-    rect.setDimensions({ 
-        h: newY - rect.dimensions().y
+const translateYEnd = (dimensions, setDimensions, newY) => {
+    setDimensions({ 
+        h: newY - dimensions.y
     })
 }
 
@@ -48,61 +48,61 @@ export const createRectHandles = ({ x = null, y = null, w = null, h = null } = {
         [
             x1,
             y1,
-            (rect, x, y) => {
-                translateXStart(rect, x)
-                translateYStart(rect, y)
+            (dimensions, setDimensions, x, y) => {
+                translateXStart(dimensions, setDimensions, x)
+                translateYStart(dimensions, setDimensions, y)
             }
         ],
         [
             x2,
             y1,
-            (rect, x, y) => {
-                translateYStart(rect, y)
+            (dimensions, setDimensions, x, y) => {
+                translateYStart(dimensions, setDimensions, y)
             }
         ],
         [
             x3,
             y1,
-            (rect, x, y) => {
-                translateXEnd(rect, x)
-                translateYStart(rect, y)
+            (dimensions, setDimensions, x, y) => {
+                translateXEnd(dimensions, setDimensions, x)
+                translateYStart(dimensions, setDimensions, y)
             }
         ],
         [
             x3,
             y2,
-            (rect, x, y) => {
-                translateXEnd(rect, x)
+            (dimensions, setDimensions, x, y) => {
+                translateXEnd(dimensions, setDimensions, x)
             }
         ],
         [
             x3,
             y3,
-            (rect, x, y) => {
-                translateXEnd(rect, x)
-                translateYEnd(rect, y)
+            (dimensions, setDimensions, x, y) => {
+                translateXEnd(dimensions, setDimensions, x)
+                translateYEnd(dimensions, setDimensions, y)
             }
         ],
         [
             x2,
             y3,
-            (rect, x, y) => {
-                translateYEnd(rect, y)
+            (dimensions, setDimensions, x, y) => {
+                translateYEnd(dimensions, setDimensions, y)
             }
         ],
         [
             x1,
             y3,
-            (rect, x, y) => {
-                translateXStart(rect, x),
-                translateYEnd(rect, y)
+            (dimensions, setDimensions, x, y) => {
+                translateXStart(dimensions, setDimensions, x),
+                translateYEnd(dimensions, setDimensions, y)
             }
         ],
         [
             x1,
             y2,
-            (rect, x, y) => {
-                translateXStart(rect, x)
+            (dimensions, setDimensions, x, y) => {
+                translateXStart(dimensions, setDimensions, x)
             }
         ]
     ]

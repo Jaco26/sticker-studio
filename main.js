@@ -6,156 +6,253 @@ import { setupElements } from './lib/elements.js'
 import { createRectHandles } from './lib/rect-handles.js'
 import { createRect } from './lib/shapes/rect.js'
 
-const canvas = setupCanvas({ containerID: 'canvas', width: 800, height: 600 })
+import { createProject } from './lib/project.js'
 
-const elements = [
-    createRect(350, 100, 300, 100),
-    createRect(150, 100, 100, 200)
-]
+import { main } from './lib2/app.js'
 
-let selected = null
-let handles = null
+main()
 
-canvas.draw((main, overlay) => {
+// const canvas = setupCanvas({ containerID: 'canvas', width: 800, height: 600 })
 
-    elements.forEach(elem => {
+// const mouseInput = (() => {
 
-        elem.fillStyle('#88c')
+//     const observers = []
 
-        elem.strokeStyle('#2f2')
+//     const notify = (type, { mouseX, mouseY }) => {
+//         observers.forEach(observer => 
+//             observer.onNotify(type, { mouseX, mouseY })
+//         )
+//     }
 
-        elem.draw(main)
+//     canvas.on('mousedown', e => {
 
-    })
+//         notify('mousedown', { mouseX: e.offsetX, mouseY: e.offsetY })
 
-})
+//         canvas.on('mousemove', e => {
 
-canvas.on('mousedown', mdEvt => {
-
-    selected = elements.reduce((acc, elem) => {
-
-        elem.selected(elem.isHit(mdEvt.offsetX, mdEvt.offsetY))
-
-        acc = elem.selected() ? elem : acc
-
-        return acc
-
-    }, null)
-
-    if (selected) {
-
-        handles = createRectHandles(selected.dimensions())
-
-        canvas.clear()
-
-        canvas.draw((main, overlay) => {
-
-            elements.forEach(elem => {
-
-                elem.draw(main)
-
-            })
-        
-            handles.draw(overlay)
-
-        })
-
-        const { offsetX, offsetY } = mdEvt
-
-        const resizeRect = handles.isHit(offsetX, offsetY)
-    
-        if (resizeRect) {
-    
-            canvas.on('mousemove', mmEvt => {
-    
-                const { offsetX, offsetY } = mmEvt
-    
-                resizeRect(selected, offsetX, offsetY)
-    
-                handles.update(selected.dimensions())
-    
-                canvas.clear()
-    
-                canvas.draw((main, overlay) => {
-
-                    elements.forEach(elem => {
-
-                        elem.draw(main)
-
-                    })
-                
-                    handles.draw(overlay)
-    
-                })
-    
-            })
-    
-        } else {
-    
-            const { x, y } = selected.dimensions()
-    
-            const initXOffset = offsetX - x 
-    
-            const initYOffset = offsetY - y
+//             notify('mousemove', { mouseX: e.offsetX, mouseY: e.offsetY })
             
-            canvas.on('mousemove', mmEvt => {
-    
-                const { offsetX, offsetY } = mmEvt
-    
-                const { x, y } = selected.dimensions()
-    
-                const rectOffsetX = offsetX - x
-    
-                const rectOffsetY = offsetY - y
-    
-                selected.setDimensions({
-                    x: x + rectOffsetX - initXOffset,
-                    y: y + rectOffsetY - initYOffset
-                })
-    
-                handles.update(selected.dimensions())
-    
-                canvas.clear()
-    
-                canvas.draw((main, overlay) => {
+//         })
 
-                    elements.forEach(elem => {
+//     })
 
-                        elem.draw(main)
+//     canvas.on('mouseup', e => {
 
-                    })
+//         notify('mouseup', { mouseX: e.offsetX, mouseY: e.offsetY })
+
+//         canvas.off('mousemove')
+
+//     })
+
+//     return {
+//         addObserver(ob) {
+//             observers.push(ob)
+//         },
+//         removeObserver(ob) {
+//             observers.splice(observers.indexOf(ob), 1)
+//         }
+//     }
+// })()
+
+
+
+// const elements = (() => {
+//     const _elems = [
+//         createRect(350, 100, 300, 100),
+//         createRect(150, 100, 100, 200),
+//         createRect(550, 250, 100, 200),
+//     ]
+
+//     return _elems
+// })()
+
+// function notify(elem, event, payload) {
+//     elem.onNotify(event, payload)
+// }
+
+// canvas.draw((main) => {
+//     elements.forEach(elem => {
+//         elem.fillStyle('#88c')
+//         elem.strokeStyle('#2f2')
+//         elem.draw(main)
+//     })
+// })
+
+// canvas.on('mousedown', e => {
+
+//     elements.forEach(elem => {
+
+
+
+//         if (elem.isHit(e.offsetX, e.offsetY)) {
+
+//             notify(elem, 'SELECTED', true)
+
+//         }
+
+//     })
+
+// })
+
+
+
+// // ---------------- - -- ----------------- - - -- -- - -----------
+
+// const canvas = setupCanvas({ containerID: 'canvas', width: 800, height: 600 })
+
+// const elements = [
+//     createRect(350, 100, 300, 100),
+//     createRect(150, 100, 100, 200)
+// ]
+
+// let selected = null
+// let handles = null
+
+// canvas.draw((main, overlay) => {
+
+//     elements.forEach(elem => {
+
+//         elem.fillStyle('#88c')
+
+//         elem.strokeStyle('#2f2')
+
+//         elem.draw(main)
+
+//     })
+
+// })
+
+// canvas.on('mousedown', mdEvt => {
+
+//     selected = elements.reduce((acc, elem) => {
+
+//         elem.selected(elem.isHit(mdEvt.offsetX, mdEvt.offsetY))
+
+//         acc = elem.selected() ? elem : acc
+
+//         return acc
+
+//     }, null)
+
+//     if (selected) {
+
+//         handles = createRectHandles(selected.dimensions())
+
+//         canvas.clear()
+
+//         canvas.draw((main, overlay) => {
+
+//             elements.forEach(elem => {
+
+//                 elem.draw(main)
+
+//             })
+        
+//             handles.draw(overlay)
+
+//         })
+
+//         const { offsetX, offsetY } = mdEvt
+
+//         const resizeRect = handles.isHit(offsetX, offsetY)
     
-                    handles.draw(overlay)
+//         if (resizeRect) {
     
-                })
+//             canvas.on('mousemove', mmEvt => {
     
-            })
+//                 const { offsetX, offsetY } = mmEvt
     
-        }
-
-    } else {
-
-        canvas.clear()
-
-        canvas.draw((main, overlay) => {
+//                 resizeRect(selected, offsetX, offsetY)
     
-            elements.forEach(elem => {
+//                 handles.update(selected.dimensions())
     
-                elem.draw(main)
+//                 canvas.clear()
     
-            })
+//                 canvas.draw((main, overlay) => {
+
+//                     elements.forEach(elem => {
+
+//                         elem.draw(main)
+
+//                     })
+                
+//                     handles.draw(overlay)
     
-        })
+//                 })
+    
+//             })
+    
+//         } else {
+    
+//             const { x, y } = selected.dimensions()
+    
+//             const initXOffset = offsetX - x 
+    
+//             const initYOffset = offsetY - y
+            
+//             canvas.on('mousemove', mmEvt => {
+    
+//                 const { offsetX, offsetY } = mmEvt
+    
+//                 const { x, y } = selected.dimensions()
+    
+//                 const rectOffsetX = offsetX - x
+    
+//                 const rectOffsetY = offsetY - y
+    
+//                 selected.setDimensions({
+//                     x: x + rectOffsetX - initXOffset,
+//                     y: y + rectOffsetY - initYOffset
+//                 })
+    
+//                 handles.update(selected.dimensions())
+    
+//                 canvas.clear()
+    
+//                 canvas.draw((main, overlay) => {
 
-    }
+//                     elements.forEach(elem => {
 
-})
+//                         elem.draw(main)
 
-canvas.on('mouseup', mouseupEvt => {
+//                     })
+    
+//                     handles.draw(overlay)
+    
+//                 })
+    
+//             })
+    
+//         }
 
-    canvas.off('mousemove')
+//     } else {
 
-})
+//         canvas.clear()
+
+//         canvas.draw((main, overlay) => {
+    
+//             elements.forEach(elem => {
+    
+//                 elem.draw(main)
+    
+//             })
+    
+//         })
+
+//     }
+
+// })
+
+// canvas.on('mouseup', mouseupEvt => {
+
+//     canvas.off('mousemove')
+
+// })
+
+// // ---------------- - -- ----------------- - - -- -- - -----------
+
+
+
 
 
 // // / / // // /  / / // /// / / // /
