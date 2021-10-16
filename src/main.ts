@@ -3,7 +3,7 @@ import { Rect } from './interfaces.js'
 
 const canvas = makeCanvas({ constainerID: 'canvas' })
 
-const rect = {
+const rect: Rect = {
     x: 40,
     y: 40,
     w: 50,
@@ -12,7 +12,7 @@ const rect = {
     strokeStyle: 'red'
 }
 
-const dragBox = {
+const dragBox: Rect = {
     x: 0,
     y: 0,
     w: 0,
@@ -46,8 +46,8 @@ paint()
 const dragStateData = {
     mouseDownX: null,
     mouseDownY: null,
-    mouseMoveX: null,
-    mouseMoveY: null,
+    initRectXOffset: null,
+    initRectYOffset: null,
 }
 
 interface State {
@@ -58,9 +58,8 @@ interface State {
 
 const moveRectState: State = {
     handleInput(x: number, y: number) {
-        console.log('moveRectState:handleInput')
-        rect.x = x - dragStateData.mouseDownX
-        rect.y = y - dragStateData.mouseDownY
+        rect.x = x - dragStateData.initRectXOffset 
+        rect.y = y - dragStateData.initRectYOffset
     },
     update() {
         paint()
@@ -70,7 +69,6 @@ const moveRectState: State = {
 
 const makeBoxState: State = {
     handleInput(x: number, y: number) {
-        console.log('makeBoxState:handleInput')
         dragBox.x = dragStateData.mouseDownX
         dragBox.y = dragStateData.mouseDownY
         dragBox.w = x - dragBox.x
@@ -85,7 +83,6 @@ const makeBoxState: State = {
 
 const idleState: State = {
     handleInput(x: number, y: number) {
-        console.log('idleState:handleInput')
         dragStateData.mouseDownX = x
         dragStateData.mouseDownY = y
     },
@@ -97,6 +94,8 @@ const idleState: State = {
             rect.y <= mouseDownY &&
             rect.y + rect.h >= mouseDownY
         ) {
+            dragStateData.initRectXOffset = dragStateData.mouseDownX - rect.x
+            dragStateData.initRectYOffset = dragStateData.mouseDownY - rect.y
             return moveRectState
         }
         return makeBoxState
@@ -115,7 +114,6 @@ canvas.on('mousedown', e => {
 })
 
 canvas.on('mouseup', e => {
-    console.log('mouseup')
     canvas.off('mousemove')
     state = idleState
 })
