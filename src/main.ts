@@ -1,31 +1,26 @@
 import { makeCanvas } from './canvas.js'
-import { createRect, Rect } from './shapes/rect.js'
+import {
+    createRect,
+    rectDidCollideWithRect,
+    rectDraw,
+    rectIsHit,
+    rectMove,
+    rectResize,
+} from './shapes/rect.js'
 
-import { rectIsHit, rectDidCollideWithRect } from './physics.js'
-import { rectDraw } from './brush.js'
-import { FiniteStateMachine } from './state-machine.js'
+import { FiniteStateMachine } from './state.js'
 
 const canvas = makeCanvas({ constainerID: 'canvas' })
 
+const elements = [
+    createRect(50, 50, 50, 50, 'blue', 'red'),
+    createRect(150, 150, 50, 50, 'orange', 'brown'),
+]
 
+const [rect, rect2] = elements
 
-const rect: Rect = {
-    x: 40,
-    y: 40,
-    w: 50,
-    h: 50,
-    fillStyle: 'blue',
-    strokeStyle: 'red'
-}
+const dragBox = createRect(0, 0, 0, 0, '', 'green')
 
-const dragBox: Rect = {
-    x: 0,
-    y: 0,
-    w: 0,
-    h: 0,
-    fillStyle: '',
-    strokeStyle: 'green'
-}
 
 function testCollision() {
     if (rectDidCollideWithRect(rect, dragBox)) {
@@ -41,6 +36,7 @@ function paint() {
     canvas.clear()
     canvas.draw(main => {
         rectDraw(main, rect)
+        rectDraw(main, rect2)
         rectDraw(main, dragBox)
     })    
 } 
@@ -48,21 +44,28 @@ function paint() {
 paint()
 
 const stateMachine = new FiniteStateMachine('idle', {
-    mouseDownX: 0,
-    mouseDownY: 0,
-    XOffset: 0,
-    YOffset: 0,
+    mousedownX: 0,
+    mousedownY: 0,
+    mousemoveX: 0,
+    mousemoveY: 0,
 })
 
 stateMachine.addState('idle', {
     handleInput(x, y) {
-        this.mouseDownX = x
-        this.mouseDownY = y
+        return {
+            mousedownX: x,
+            mousedownY: y
+        }
     },
     update() {
-        if (rectIsHit(rect, this.mouseDownX, this.mouseDownY)) {
-            this.XOffset = this.mouseDownX - rect.x
-            this.YOffset = this.mouseDownY - rect.y
+        if (
+            rectIsHit(rect, this.mousedownX, this.mousedownY) ||
+            rectIsHit(rect2, this.mousedownX, this.mousedownY)
+        ) {
+            rect.dragOffsetX = this.mousedownX - rect.x
+            rect.dragOffsetY = this.mousedownY - rect.y
+            rect2.dragOffsetX = this.mousedownX - rect2.x
+            rect2.dragOffsetY = this.mousedownY - rect2.y
             return 'move'
         }
         return 'drag'
@@ -71,45 +74,37 @@ stateMachine.addState('idle', {
 
 stateMachine.addState('move', {
     handleInput(x, y) {
-        rect.x = x - this.XOffset
-        rect.y = y - this.YOffset
-        testCollision()
+        return {
+            mousemoveX: x,
+            mousemoveY: y
+        }
     },
     update() {
+        rectMove(rect, this.mousemoveX, this.mousemoveY)
+        rectMove(rect2, this.mousemoveX, this.mousemoveY)
+        testCollision()
         paint()
     }
 })
 
 stateMachine.addState('drag', {
     handleInput(x, y) {
-        let _x = this.mouseDownX
-        let _y = this.mouseDownY
-        let _width = x - this.mouseDownX
-        let _height = y - this.mouseDownY
-
-        if (_width < 0) {
-            _x = _x + _width
-            _width = this.mouseDownX - _x
+        return {
+            mousemoveX: x,
+            mousemoveY: y
         }
-
-        if (_height < 0) {
-            _y = _y + _height
-            _height = this.mouseDownY - _y
-        }
-
-        dragBox.x = _x
-        dragBox.y = _y
-        dragBox.w = _width
-        dragBox.h = _height
-
-        testCollision()
     },
     update() {
+        const { mousemoveX, mousemoveY, mousedownX, mousedownY } = this
+        rectResize(dragBox, mousemoveX, mousemoveY, mousedownX, mousedownY)
+        testCollision()
         paint()
     }
 })
 
 canvas.on('mousedown', e => {
+    stateMachine.handleInput(e.offsetX, e.offsetY)
+    stateMachine.update()
     stateMachine.handleInput(e.offsetX, e.offsetY)
     stateMachine.update()
     canvas.on('mousemove', e => {
@@ -123,3 +118,7 @@ canvas.on('mouseup', e => {
     stateMachine.reset()
 })
 
+canvas.on('mouseleave', e => {
+    canvas.off('mousemove')
+    stateMachine.reset()
+})

@@ -1,6 +1,6 @@
 
 export interface State {
-    handleInput(x: number, y: number): void
+    handleInput(x: number, y: number): Dict<any>
     update(): string|void
 }
 
@@ -19,6 +19,10 @@ export class FiniteStateMachine {
         this.data = data
     }
 
+    private get _data() {
+        return this.data
+    }
+
     reset() {
         this.currentState = this.initialState
     }
@@ -28,11 +32,14 @@ export class FiniteStateMachine {
     }
 
     handleInput(x: number, y: number) {
-        this.states[this.currentState].handleInput.call(this.data, x, y)
+        this.data = {
+            ...this.data,
+            ...this.states[this.currentState].handleInput.call(this._data, x, y)
+        }
     }
 
     update() {
-        const nextState = this.states[this.currentState].update.call(this.data)
+        const nextState = this.states[this.currentState].update.call(this._data)
         if (nextState) {
             this.currentState = nextState
         }
