@@ -20,11 +20,3 @@ export interface Subject {
     removeObserver(ob: Observer): void
 }
 
-export interface Rect {
-    x: number
-    y: number
-    w: number
-    h: number
-    fillStyle: string
-    strokeStyle: string
-}
